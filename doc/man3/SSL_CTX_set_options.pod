@@ -317,6 +317,12 @@ only understands up to SSLv3. In this case the client must still use the
 same SSLv3.1=TLSv1 announcement. Some clients step down to SSLv3 with respect
 to the server's answer and violate the version rollback protection.)
 
+=item SSL_OP_NO_END_OF_EARLY_DATA
+
+The TLS EndOfEarlyData message is not used with QUIC. when SSL_OP_NO_END_OF_EARLY_DATA
+is set, The server will enable 0-RTT, and skip the EndOfEarlyData message. Currently
+only affects for server.
+
 =back
 
 The following options no longer have any effect but their identifiers are

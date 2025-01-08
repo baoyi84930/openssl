@@ -1662,7 +1662,7 @@ static int final_early_data(SSL *s, unsigned int context, int sent)
 
     if (s->max_early_data == 0
             || !s->hit
-            || s->early_data_state != SSL_EARLY_DATA_ACCEPTING
+            || (s->early_data_state != SSL_EARLY_DATA_ACCEPTING && !(s->options & SSL_OP_NO_END_OF_EARLY_DATA))
             || !s->ext.early_data_ok
             || s->hello_retry_request != SSL_HRR_NONE
             || (s->allow_early_data_cb != NULL
