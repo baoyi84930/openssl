@@ -243,6 +243,14 @@ int ossl_statem_skip_early_data(SSL_CONNECTION *s)
  */
 void ossl_statem_check_finish_init(SSL_CONNECTION *s, int sending)
 {
+    int i = SSL3_CC_HANDSHAKE | SSL3_CHANGE_CIPHER_SERVER_READ;
+
+    if (s->server && SSL_NO_EOED(s) && s->ext.early_data == SSL_EARLY_DATA_ACCEPTED
+        && s->early_data_state != SSL_EARLY_DATA_FINISHED_READING
+            && s->statem.hand_state == TLS_ST_EARLY_DATA) {
+        s->early_data_state = SSL_EARLY_DATA_FINISHED_READING;
+        SSL_CONNECTION_GET_SSL(s)->method->ssl3_enc->change_cipher_state(s, i);
+    }
     if (sending == -1) {
         if (s->statem.hand_state == TLS_ST_PENDING_EARLY_DATA_END
                 || s->statem.hand_state == TLS_ST_EARLY_DATA) {
