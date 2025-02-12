@@ -896,3 +896,27 @@ int ossl_quic_tls_has_bad_max_early_data(QUIC_TLS *qtls)
      */
     return max_early_data != 0xffffffff && max_early_data != 0;
 }
+
+void ossl_quic_tls_set_early_data_enabled(QUIC_TLS *qtls, int enabled)
+{
+    SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(qtls->args.s);
+
+    if (!SSL_IS_QUIC_HANDSHAKE(sc) || !SSL_in_before(sc))
+        return;
+
+    if (!enabled) {
+        sc->early_data_state = SSL_EARLY_DATA_NONE;
+        return;
+    }
+
+    if (sc->server) {
+        sc->early_data_state = SSL_EARLY_DATA_ACCEPTING;
+        return;
+    }
+
+    if ((sc->session == NULL || sc->session->ext.max_early_data != 0xffffffff)
+        && sc->psk_use_session_cb == NULL)
+        return;
+
+    sc->early_data_state = SSL_EARLY_DATA_CONNECTING;
+}
