@@ -999,15 +999,17 @@ static uint64_t quic_mask_or_options(SSL *ssl, uint64_t mask_value, uint64_t or_
               & OSSL_QUIC_PERMITTED_OPTIONS;
     }
 
+    ret = ctx.qc->default_ssl_options;
     if (ctx.xso != NULL) {
         ctx.xso->ssl_options
             = ((ctx.xso->ssl_options & ~mask_value) | or_value)
             & OSSL_QUIC_PERMITTED_OPTIONS_STREAM;
 
         xso_update_options(ctx.xso);
-    }
 
-    ret = ctx.is_stream ? ctx.xso->ssl_options : ctx.qc->default_ssl_options;
+        if (ctx.is_stream)
+            ret = ctx.xso->ssl_options;
+    }
 
     qctx_unlock(&ctx);
     return ret;
@@ -4586,7 +4588,11 @@ SSL *ossl_quic_accept_connection(SSL *ssl, uint64_t flags)
      * we just need to extract it
      */
     conn_ssl = ossl_quic_channel_get0_tls(new_ch);
+    if (conn_ssl == NULL)
+        goto out;
     conn_ssl = SSL_CONNECTION_GET_USER_SSL(SSL_CONNECTION_FROM_SSL(conn_ssl));
+    if (conn_ssl == NULL)
+        goto out;
     qc = (QUIC_CONNECTION *)conn_ssl;
     qc->listener = ctx.ql;
     qc->pending = 0;
